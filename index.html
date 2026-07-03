@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Library</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #171a21;
+    --text: #e8e8e8;
+    --muted: #8a8f98;
+    --accent: #5b8cff;
+    --border: #262a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  p.sub {
+    color: var(--muted);
+    margin-top: 0;
+    margin-bottom: 28px;
+  }
+  #search {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+  #list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    max-width: 900px;
+  }
+  .book {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+    transition: border-color 0.15s ease;
+  }
+  .book:hover {
+    border-color: var(--accent);
+  }
+  .book .title {
+    font-weight: 600;
+    font-size: 0.98rem;
+    margin-bottom: 6px;
+  }
+  .book .tag {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  #empty {
+    color: var(--muted);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+  <h1>My Library</h1>
+  <p class="sub">Personal book collection — click a title to open it.</p>
+
+  <input id="search" type="text" placeholder="Search books..." oninput="filterBooks()">
+
+  <div id="list"></div>
+  <p id="empty">No books found.</p>
+
+  <script>
+    let allBooks = [];
+
+    fetch('books.json')
+      .then(res => res.json())
+      .then(data => {
+        allBooks = data;
+        renderBooks(allBooks);
+      })
+      .catch(err => {
+        document.getElementById('list').innerHTML =
+          '<p style="color:#e88">Could not load books.json — check the file exists and is valid JSON.</p>';
+        console.error(err);
+      });
+
+    function renderBooks(books) {
+      const list = document.getElementById('list');
+      const empty = document.getElementById('empty');
+      list.innerHTML = '';
+
+      if (books.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      books.forEach(book => {
+        const a = document.createElement('a');
+        a.className = 'book';
+        a.href = book.file;
+        a.target = '_blank';
+        a.innerHTML = `
+          <div class="title">${book.title}</div>
+          <div class="tag">${book.tag || ''}</div>
+        `;
+        list.appendChild(a);
+      });
+    }
+
+    function filterBooks() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const filtered = allBooks.filter(b =>
+        b.title.toLowerCase().includes(q) ||
+        (b.tag || '').toLowerCase().includes(q)
+      );
+      renderBooks(filtered);
+    }
+  </script>
+
+</body>
+</html>
